@@ -1,20 +1,27 @@
 package com.nlp.demo;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class TestMessageFilter {
 
 	public static void main(String[] args) {
-		Map<String, Set<String>> map = NlpService.filterSetOfMessages(getSampleArrayList());
+		Long StartTime = System.currentTimeMillis();
+		List<String> set = new ArrayList<String>();
+		set.addAll(getSampleArrayList());
+		System.out.println("000000000000 "+set.size());
+		Map<String, List<String>> map = NlpService.filterSetOfMessages(set);
 		map.entrySet().stream().forEach(mapContent -> {
-			System.out.println(" map content is::::: " + mapContent);
+			System.out.println(" map content is::::: " + mapContent
+					+"******");
 		});
+
+		System.out.println("Time taken-------------------- " + (System.currentTimeMillis() - StartTime));
 	}
 
-	private static Set<String> getSampleArrayList() {
-		Set<String> stringSet = new HashSet<String>();
+	private static List<String> getSampleArrayList() {
+		List<String> stringSet = new ArrayList<String>();
 		stringSet.add("its is grateful beautiful friends are fulfilling an incredibly joyful accomplishment.");
 		stringSet.add("What an truly terrible idea");
 		stringSet.add("How are you");
@@ -33,6 +40,7 @@ public class TestMessageFilter {
 		stringSet.add("how are you doing");
 		stringSet.add("how do you do");
 		stringSet.add("You are bad guy");
+		stringSet.add("You are not good guy");
 		stringSet.add("You are not good guy");
 		return stringSet;
 	}

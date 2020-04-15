@@ -1,12 +1,11 @@
 package com.nlp.demo;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.Set;
 
 import org.springframework.util.CollectionUtils;
 
@@ -36,9 +35,10 @@ import edu.stanford.nlp.util.CoreMap;
 
 public class NlpService {
 
-	public Map<String, Set<String>> getFilteredMap(List<String> messageList) {
-		Map<String, Set<String>> filteredMap = new HashMap<>();
-		findSentiment(messageList).entrySet().stream().forEach(entry-> filteredMap.putAll(filterSetOfMessages(entry.getValue())));
+	public Map<String, List<String>> getFilteredMap(List<String> messageList) {
+		Map<String, List<String>> filteredMap = new HashMap<>();
+		findSentiment(messageList).entrySet().stream()
+				.forEach(entry -> filteredMap.putAll(filterSetOfMessages(entry.getValue())));
 		return filteredMap;
 	}
 
@@ -46,8 +46,8 @@ public class NlpService {
 	// whether sentence is positive, negative o neutral.
 	// we did it just to reduce comparison list size and get unique context based
 	// messages
-	public static Map<String, Set<String>> findSentiment(List<String> line) {
-		Map<String, Set<String>> sentimentMap = new HashMap<>();
+	public static Map<String, List<String>> findSentiment(List<String> line) {
+		Map<String, List<String>> sentimentMap = new HashMap<>();
 		Properties pipelineProps = new Properties();
 		Properties tokenizerProps = new Properties();
 		pipelineProps.setProperty("annotators", "parse, sentiment");
@@ -63,21 +63,21 @@ public class NlpService {
 			if (Objects.nonNull(sentence) && !String.valueOf(sentence).trim().equalsIgnoreCase(".")) {
 				String output = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
 				if (output.toLowerCase().contains("negative")) {
-					Set<String> negativeComment = Objects.nonNull(sentimentMap.get("Negative"))
+					List<String> negativeComment = Objects.nonNull(sentimentMap.get("Negative"))
 							? sentimentMap.get("Negative")
-							: new HashSet<String>();
+							: new ArrayList<String>();
 					negativeComment.add(String.valueOf(sentence));
 					sentimentMap.put("Negative", negativeComment);
 				} else if (output.toLowerCase().contains("neutral")) {
-					Set<String> negativeComment = Objects.nonNull(sentimentMap.get("Neutral"))
+					List<String> negativeComment = Objects.nonNull(sentimentMap.get("Neutral"))
 							? sentimentMap.get("Neutral")
-							: new HashSet<String>();
+							: new ArrayList<String>();
 					negativeComment.add(String.valueOf(sentence));
 					sentimentMap.put("Neutral", negativeComment);
 				} else {
-					Set<String> negativeComment = Objects.nonNull(sentimentMap.get("Positive"))
+					List<String> negativeComment = Objects.nonNull(sentimentMap.get("Positive"))
 							? sentimentMap.get("Positive")
-							: new HashSet<String>();
+							: new ArrayList<String>();
 					negativeComment.add(String.valueOf(sentence));
 					sentimentMap.put("Positive", negativeComment);
 				}
@@ -88,12 +88,12 @@ public class NlpService {
 	}
 
 	// here we are using POS annotation to compare unique context based messages
-	public static Map<String, Set<String>> filterSetOfMessages(Set<String> similarSentimentList) {
-		Map<String, Set<String>> finalMap = new HashMap<String, Set<String>>();
-		Set<String> filteredSet = new HashSet<String>();
+	public static Map<String, List<String>> filterSetOfMessages(List<String> similarSentimentList) {
+		Map<String, List<String>> finalMap = new HashMap<String, List<String>>();
+		List<String> filteredSet = new ArrayList<String>();
 		MaxentTagger maxentTagger = new MaxentTagger("english-left3words-distsim.tagger");
 		for (String similarSentiment : similarSentimentList) {
-			Set<String> addedNoun = new HashSet<String>();
+			List<String> addedNoun = new ArrayList<String>();
 			String tag = maxentTagger.tagString(similarSentiment);
 			String[] eachTag = tag.split("\\s+");
 			for (int i = 0; i < eachTag.length; i++) {
@@ -108,7 +108,7 @@ public class NlpService {
 			Boolean isContentExist = validateIfNounExistInList(filteredSet, addedNoun, finalMap, similarSentiment);
 			if (CollectionUtils.isEmpty(addedNoun) || !isContentExist) {
 				filteredSet.add(similarSentiment);
-				finalMap.put(similarSentiment, new HashSet<String>(1));
+				finalMap.put(similarSentiment, new ArrayList<String>(1));
 			}
 		}
 		return finalMap;
@@ -119,15 +119,15 @@ public class NlpService {
 	// already saves in Map as a key or not
 	// NOTE: below for loop is not optimal approach but Time Constraint lead to this
 	// and it need to be removed in future.
-	public static Boolean validateIfNounExistInList(Set<String> filteredSet, Set<String> nouns,
-			Map<String, Set<String>> finalMap, String currentSentiment) {
+	public static Boolean validateIfNounExistInList(List<String> filteredSet, List<String> nouns,
+			Map<String, List<String>> finalMap, String currentSentiment) {
 		Boolean removeSentance = Boolean.FALSE;
 		for (String nounValue : nouns) {
 			for (String similarSentimentContent : filteredSet) {
 				if (similarSentimentContent.contains(nounValue)) {
-					Set<String> updatedValues = Objects.nonNull(finalMap.get(similarSentimentContent))
+					List<String> updatedValues = Objects.nonNull(finalMap.get(similarSentimentContent))
 							? finalMap.get(similarSentimentContent)
-							: new HashSet<String>();
+							: new ArrayList<String>();
 					updatedValues.add(currentSentiment);
 					finalMap.put(similarSentimentContent, updatedValues);
 					removeSentance = Boolean.TRUE;
