@@ -2,12 +2,10 @@ package com.nlp.demo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.Set;
 
 import org.springframework.util.CollectionUtils;
 
@@ -127,11 +125,10 @@ public class NlpService {
 		for (String nounValue : nouns) {
 			for (String similarSentimentContent : filteredSet) {
 				if (similarSentimentContent.contains(nounValue)) {
-					Set<String> updatedValues = Objects.nonNull(finalMap.get(similarSentimentContent))
-							? new HashSet<>(finalMap.get(similarSentimentContent))
-							: new HashSet<String>();
-					char lastVal = currentSentiment.charAt(currentSentiment.length() - 1);
-					updatedValues.add(String.valueOf(lastVal).equals(".")?currentSentiment.substring(0, currentSentiment.length() - 1):currentSentiment);
+					List<String> updatedValues = Objects.nonNull(finalMap.get(similarSentimentContent))
+							? finalMap.get(similarSentimentContent)
+							: new ArrayList<String>();
+					updatedValues.add(currentSentiment);
 					finalMap.put(similarSentimentContent, new ArrayList<>(updatedValues));
 					removeSentance = Boolean.TRUE;
 				}
